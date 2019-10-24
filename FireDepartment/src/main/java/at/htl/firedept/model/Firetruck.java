@@ -3,13 +3,13 @@ package at.htl.firedept.model;
 public class Firetruck {
     private String type;
     private String licensePlate;
-    private String numSeats;
+    private int numSeats;
 
 
     public Firetruck() {
     }
 
-    public Firetruck(String type, String licensePlate, String numSeats) {
+    public Firetruck(String type, String licensePlate, int numSeats) {
         this.type = type;
         this.licensePlate = licensePlate;
         this.numSeats = numSeats;
@@ -31,11 +31,11 @@ public class Firetruck {
         this.licensePlate = licensePlate;
     }
 
-    public String getNumSeats() {
+    public int getNumSeats() {
         return numSeats;
     }
 
-    public void setNumSeats(String numSeats) {
+    public void setNumSeats(int numSeats) {
         this.numSeats = numSeats;
     }
 }
