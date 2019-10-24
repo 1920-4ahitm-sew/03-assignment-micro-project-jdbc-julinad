@@ -1,20 +1,18 @@
 package at.htl.firedept.database;
 
 import at.htl.firedept.model.Firetruck;
-import at.htl.firedept.rest.FiretruckEndpoint;
 
 import java.sql.*;
 import java.util.LinkedList;
 import java.util.List;
 
 public class Database {
-    static final String DRIVER_STRING = "org.apache.derby.jdbc.ClientDriver";
+    public static final String DRIVER_STRING = "org.apache.derby.jdbc.ClientDriver";
     static final String CONNECTION_STRING = "jdbc:derby://localhost:1527/db";
     static final String USER = "app";
     static final String PASSWORD = "app";
-    static FiretruckEndpoint instance = null;
     private static Connection connection;
-    public int colNum = 0;
+
 
 
     public Database(){
@@ -23,6 +21,7 @@ public class Database {
 
     //insert
     public int insertFiretruck(Firetruck firetruck) throws SQLException {
+        openDb();
         int result = 0;
         PreparedStatement insertFiretruck = connection.prepareStatement(
                 "insert into Firetruck(type, licenseplate, numSeats) values (?,?,?)");
@@ -31,39 +30,77 @@ public class Database {
         insertFiretruck.setInt(3,firetruck.getNumSeats());
 
         result = insertFiretruck.executeUpdate();
+        closeDb();
         return result;
+
     }
 
     //select
-    public List<Firetruck> getFiretruck() throws SQLException {
-        int i = 1;
+    public List<Firetruck> getFiretrucks() throws SQLException {
         List<Firetruck> fList = new LinkedList<>();
-        Statement statement = connection.createStatement();
-        String sqlSelect = "select type, licenseplate, numSeats from Firetruck";
-        ResultSet rSet = statement.executeQuery(sqlSelect);
-        ResultSetMetaData rsmData = rSet.getMetaData();
-        colNum = rsmData.getColumnCount();
+        openDb();
+        PreparedStatement select = connection.prepareStatement("select type, licenseplate, numSeats from firetruck");
 
-        while(rSet.next()){
-            while(i <= colNum){
-                Object o = rSet.getObject(i);
-                fList.add((Firetruck) o);
-                i++;
-            }
-            i = 1;
+        ResultSet rs = select.executeQuery();
+        Firetruck firetruck;
 
+        while (rs.next()){
+            firetruck = new Firetruck();
+            firetruck.setType(rs.getString(1));
+            firetruck.setLicensePlate(rs.getString(2));
+            firetruck.setNumSeats(rs.getInt(3));
+
+            fList.add(firetruck);
         }
+        closeDb();
         return fList;
     }
+    public Firetruck getFiretruck(String licenseplate) throws SQLException {
+        openDb();
+        Firetruck firetruck = new Firetruck();
 
-    public Firetruck updateFiretruck(){
-        return null;
+        PreparedStatement preparedSelect = connection.prepareStatement("select type, licenseplate, numSeats from firetruck where licenseplate=?");
+        preparedSelect.setString(1, licenseplate);
+
+        ResultSet rs = preparedSelect.executeQuery();
+
+        if(rs.next()){
+            firetruck.setType(rs.getString(1));
+            firetruck.setLicensePlate(rs.getString(2));
+            firetruck.setNumSeats(rs.getInt(3));
+        }
+        closeDb();
+        return firetruck;
     }
-    public Firetruck deleteFiretruck(){
+
+    //update
+    public void updateFiretruck(Firetruck firetruck) throws SQLException {
+        openDb();
+        PreparedStatement updateFiretruck = connection.prepareStatement(
+                "update firetruck set type=?, numSeats? where licenseplate = ?");
+
+        updateFiretruck.setString(1, firetruck.getType());
+        updateFiretruck.setString(2,firetruck.getLicensePlate());
+        updateFiretruck.setInt(3,firetruck.getNumSeats());
+
+        updateFiretruck.execute();
+        System.out.println("Firetruck with licenseplate " + firetruck.getLicensePlate() + "updated");
+        closeDb();
+    }
+    //delete
+    public Firetruck deleteFiretruck(String licenseplate) throws SQLException {
+        openDb();
+        PreparedStatement deleteFiretruck = connection.prepareStatement(
+                "delete from firetruck where licenseplate = ?");
+
+        deleteFiretruck.setString(1, licenseplate);
+
+        deleteFiretruck.execute();
+        System.out.println("Firetruck with licenseplate " + licenseplate + "deleted");
+        closeDb();
         return null;
     }
     public static void openDb(){
-        connection = null;
         try{
             Class.forName(DRIVER_STRING);
             connection = DriverManager.getConnection(CONNECTION_STRING, USER, PASSWORD);
@@ -75,7 +112,7 @@ public class Database {
             ex.printStackTrace();
             System.exit(1);
         } catch (SQLException ex) {
-            System.out.println("*****couldn't open Database! *****");
+            System.out.println("***** Couldn't open Database! *****");
             ex.printStackTrace();
             System.exit(2);
         }
