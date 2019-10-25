@@ -17,26 +17,30 @@ import java.util.List;
 public class ServletFireDept extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        List<Firetruck> fList = new LinkedList<>();
-        fList = getFiretruckList();
+        List<Firetruck> fList = getFiretruckList();
         PrintWriter pw = resp.getWriter();
 
         //html head
         pw.println("<html><head><title>Firetruck List</title></head>");
 
+        //start of body
         pw.println("<body><h1>List of Firetrucks</h1>");
+
+        //table
         pw.println("<table><tr>" +
                     "<th>Type</th>" +
                     "<th>Licenseplate</th>"+
                     "<th>Number of seats</th>"+
                     "</tr>");
+        //table content
         for (Firetruck trucks : fList){
             pw.println("<tr><td>" + trucks.getType() + "</td>");
             pw.println("<td>" + trucks.getLicensePlate() + "</td>");
-            pw.println("<td>" + trucks.getNumSeats()+ "</td></tr>");
+            pw.println("<td>" + trucks.getNumSeats()+ "</td></tr></table>");
         }
 
-        pw.println("</table></body></html>");
+        //end of body and html tag
+        pw.println("</body></html>");
 
     }
 
